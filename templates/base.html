@@ -38,7 +38,7 @@
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
               <div class="navbar-nav">
                 <a class="nav-item nav-link light-text"  href="{{ url_for('browse') }}" target="_blank">Browse</a>
-                <a class="nav-item nav-link light-text"  href="{{ url_for('formSearch') }}" target="_blank">Search</a>
+                <a class="nav-item nav-link light-text"  href="{{ url_for('formSearchPDB') }}" target="_blank">Search</a>
                 <a class="nav-item nav-link light-text"  href="{{ url_for('webserver') }}" target="_blank">Submit</a>
               </div>
             </div>
@@ -62,7 +62,6 @@
           <ul class="nav nav-fill nav-pills nav-stacked flex-column">
             <li class="nav-item" style="padding:4px;padding-top:10px;"><a class="nav-link"  href="{{ url_for('about') }}" target="_blank">About</a></li>
             <li class="nav-item" style="padding:4px;"><a class="nav-link"  href="{{ url_for('download') }}" target="_blank">Download</a></li>
-            <li class="nav-item" style="padding:4px;"><a class="nav-link"  href="{{ url_for('statistics') }}" target="_blank">Statistics</a></li>
             <li class="nav-item" style="padding:4px;"><a class="nav-link"  href="{{ url_for('help') }}" target="_blank">Help</a></li>
             <li class="nav-item" style="padding:4px;"><a class="nav-link"  href="{{ url_for('contact') }}" target="_blank">Contact</a></li>
             <li class="nav-item" style="padding:4px;"><a class="nav-link"  href="{{ url_for('dunbrackLab') }}" target="_blank">DunbrackLab</a></li>

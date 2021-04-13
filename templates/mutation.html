@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Browse</title>
+    <title>Mutation</title>
   </head>
   <body>
     {% extends 'base.html' %}
@@ -32,7 +32,7 @@
             <div class="tab-pane active" id="All" role="tabpanel"  aria-labelledby="All-tab">
 
               <div class="card  border-light bg-light mb-3 very-dark-text">
-                <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                <div class="card-header light-pink-background"><h4>{{ queryname }}</h4></div>
                   <div class="card-body">
                     <h6 class="card-text">Total number of entries: {{ entry_count['All'] }}</h6>
                     <h6 class="card-text">Total number of chains: {{ chain_count['All'] }}</h6>
@@ -109,7 +109,7 @@
               <div class="tab-pane" id="KRAS" role="tabpanel"  aria-labelledby="KRAS-tab">
 
                 <div class="card  border-light bg-light mb-3 very-dark-text">
-                  <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                  <div class="card-header light-pink-background"><h4>{{ queryname }}</h4></div>
                     <div class="card-body">
                       <h6 class="card-text">Total number of entries: {{ entry_count['KRAS'] }}</h6>
                       <h6 class="card-text">Total number of chains: {{ chain_count['KRAS'] }}</h6>
@@ -186,7 +186,7 @@
                 <div class="tab-pane" id="HRAS" role="tabpanel"  aria-labelledby="HRAS-tab">
 
                   <div class="card  border-light bg-light mb-3 very-dark-text">
-                    <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                    <div class="card-header light-pink-background"><h4>{{ queryname }}</h4></div>
                       <div class="card-body">
                         <h6 class="card-text">Total number of entries: {{ entry_count['HRAS'] }}</h6>
                         <h6 class="card-text">Total number of chains: {{ chain_count['HRAS'] }}</h6>
@@ -263,7 +263,7 @@
                   <div class="tab-pane" id="NRAS" role="tabpanel"  aria-labelledby="NRAS-tab">
 
                     <div class="card  border-light bg-light mb-3 very-dark-text">
-                      <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                      <div class="card-header light-pink-background"><h4>{{ queryname }}</h4></div>
                         <div class="card-body">
                           <h6 class="card-text">Total number of entries: {{ entry_count['NRAS'] }}</h6>
                           <h6 class="card-text">Total number of chains: {{ chain_count['NRAS'] }}</h6>

@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Browse</title>
+    <title>Drug Class</title>
   </head>
   <body>
     {% extends 'base.html' %}
@@ -32,7 +32,7 @@
             <div class="tab-pane active" id="All" role="tabpanel"  aria-labelledby="All-tab">
 
               <div class="card  border-light bg-light mb-3 very-dark-text">
-                <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                <div class="card-header light-pink-background"><h4>Conformation: {{ queryname }}</h4></div>
                   <div class="card-body">
                     <h6 class="card-text">Total number of entries: {{ entry_count['All'] }}</h6>
                     <h6 class="card-text">Total number of chains: {{ chain_count['All'] }}</h6>
@@ -66,12 +66,10 @@
                           <th scope="col">Bound Protein</th>
                           <th scope="col">Mutation Status</th>
                           <th scope="col">Nucleotide Class</th>
-                          <th scope="col">Drug Class</th>
                           <th scope="col">Bound Protein Class</th>
                           <th scope="col">Homodimer Status</th>
                           <th scope="col">Switch1 Cluster</th>
                           <th scope="col">Switch2 Cluster</th>
-                          <th scope="col">Conformational State</th>
                           </tr>
                       </thead>
                       {% for item in retrieve_str['All'] %}
@@ -92,12 +90,10 @@
                         </td>
                         {% endif %}
                         <td>{{ item.nucleotide_class }}</td>
-                        <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
                         <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
                         <td>{{ item.homodimer_status }}</td>
                         <td>{{ item.switch1_cluster }}</td>
                         <td>{{ item.switch2_cluster }}</td>
-                        <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
                       </tr>
 
                       {% endfor %}
@@ -109,7 +105,7 @@
               <div class="tab-pane" id="KRAS" role="tabpanel"  aria-labelledby="KRAS-tab">
 
                 <div class="card  border-light bg-light mb-3 very-dark-text">
-                  <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                  <div class="card-header light-pink-background"><h4>Conformation: {{ queryname }}</h4></div>
                     <div class="card-body">
                       <h6 class="card-text">Total number of entries: {{ entry_count['KRAS'] }}</h6>
                       <h6 class="card-text">Total number of chains: {{ chain_count['KRAS'] }}</h6>
@@ -143,12 +139,10 @@
                             <th scope="col">Bound Protein</th>
                             <th scope="col">Mutation Status</th>
                             <th scope="col">Nucleotide Class</th>
-                            <th scope="col">Drug Class</th>
                             <th scope="col">Bound Protein Class</th>
                             <th scope="col">Homodimer Status</th>
                             <th scope="col">Switch1 Cluster</th>
                             <th scope="col">Switch2 Cluster</th>
-                            <th scope="col">Conformational State</th>
                             </tr>
                         </thead>
                         {% for item in retrieve_str['KRAS'] %}
@@ -169,12 +163,10 @@
                           </td>
                           {% endif %}
                           <td>{{ item.nucleotide_class }}</td>
-                          <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
                           <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
                           <td>{{ item.homodimer_status }}</td>
                           <td>{{ item.switch1_cluster }}</td>
                           <td>{{ item.switch2_cluster }}</td>
-                          <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
                         </tr>
 
                         {% endfor %}
@@ -186,7 +178,7 @@
                 <div class="tab-pane" id="HRAS" role="tabpanel"  aria-labelledby="HRAS-tab">
 
                   <div class="card  border-light bg-light mb-3 very-dark-text">
-                    <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                    <div class="card-header light-pink-background"><h4>Conformation: {{ queryname }}</h4></div>
                       <div class="card-body">
                         <h6 class="card-text">Total number of entries: {{ entry_count['HRAS'] }}</h6>
                         <h6 class="card-text">Total number of chains: {{ chain_count['HRAS'] }}</h6>
@@ -220,12 +212,10 @@
                               <th scope="col">Bound Protein</th>
                               <th scope="col">Mutation Status</th>
                               <th scope="col">Nucleotide Class</th>
-                              <th scope="col">Drug Class</th>
                               <th scope="col">Bound Protein Class</th>
                               <th scope="col">Homodimer Status</th>
                               <th scope="col">Switch1 Cluster</th>
                               <th scope="col">Switch2 Cluster</th>
-                              <th scope="col">Conformational State</th>
                               </tr>
                           </thead>
                           {% for item in retrieve_str['HRAS'] %}
@@ -246,12 +236,10 @@
                             </td>
                             {% endif %}
                             <td>{{ item.nucleotide_class }}</td>
-                            <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
                             <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
                             <td>{{ item.homodimer_status }}</td>
                             <td>{{ item.switch1_cluster }}</td>
                             <td>{{ item.switch2_cluster }}</td>
-                            <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
                           </tr>
 
                           {% endfor %}
@@ -263,7 +251,7 @@
                   <div class="tab-pane" id="NRAS" role="tabpanel"  aria-labelledby="NRAS-tab">
 
                     <div class="card  border-light bg-light mb-3 very-dark-text">
-                      <div class="card-header light-pink-background"><h4>Heading</h4></div>
+                      <div class="card-header light-pink-background"><h4>Conformation: {{ queryname }}</h4></div>
                         <div class="card-body">
                           <h6 class="card-text">Total number of entries: {{ entry_count['NRAS'] }}</h6>
                           <h6 class="card-text">Total number of chains: {{ chain_count['NRAS'] }}</h6>
@@ -297,12 +285,10 @@
                                 <th scope="col">Bound Protein</th>
                                 <th scope="col">Mutation Status</th>
                                 <th scope="col">Nucleotide Class</th>
-                                <th scope="col">Drug Class</th>
                                 <th scope="col">Bound Protein Class</th>
                                 <th scope="col">Homodimer Status</th>
                                 <th scope="col">Switch1 Cluster</th>
                                 <th scope="col">Switch2 Cluster</th>
-                                <th scope="col">Conformational State</th>
                                 </tr>
                             </thead>
                             {% for item in retrieve_str['NRAS'] %}
@@ -323,12 +309,10 @@
                               </td>
                               {% endif %}
                               <td>{{ item.nucleotide_class }}</td>
-                              <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
                               <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
                               <td>{{ item.homodimer_status }}</td>
                               <td>{{ item.switch1_cluster }}</td>
                               <td>{{ item.switch2_cluster }}</td>
-                              <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
                             </tr>
 
                             {% endfor %}

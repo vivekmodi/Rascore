@@ -21,6 +21,7 @@ from flask_migrate import Migrate
 #from sqlalchemy import desc,asc
 import pandas as pd
 from natsort import natsorted
+import pickle
 
 pwd=os.getcwd()
 sys.path.append(pwd+'/scripts')
@@ -68,32 +69,43 @@ class Clusters(db.Model):
             {self.homodimer_status} {self.switch1_cluster} {self.switch2_cluster} {self.conformational_state}'
 
 def create_lists():
-    pdbListDb=list()
-    for pdbs in Clusters.query.with_entities(Clusters.pdb):
-        #pdbid,chainid,cdr=pdbs[0].split('_')
-        pdbListDb.append(pdbs[0][:4])
-#     for cluster in perCDR.query.with_entities(perCDR.cluster):
-#         clusterListDb.append(cluster[0])
-#         cluster_cdr_list.append(cluster[0])
-#         cdr_length='-'.join(cluster[0].split('-')[0:2])  #Get the first two element after the split like H1-10 from H1-10-1
-#         cluster_cdr_list.append(cdr_length)     #This list contains both clusters and cdr-lengths
+    pdb_set=set();conformation_set=set();bound_protein_set=set();bound_protein_class_set=set();nucleotide_class_set=set();drug_class_set=set()
+    mutation_set=set();state1_form1_list=dict();confChainCount=dict()
+            
+    for items in Clusters.query.all():
+        pdb_set.add(items.pdb[:4])
+        conformation_set.add(items.conformational_state.strip())
+        nucleotide_class_set.add(items.nucleotide_class.strip())
+        drug_class_set.add(items.drug_class.strip())
+        bound_protein_class_set.add(items.bound_protein_class.strip())   #Check if these variables can also have ',' in them
+        
+        if ',' in items.bound_protein:
+            for protein in items.bound_protein.split(','):
+                bound_protein_set.add(protein.strip())
+        else:
+            bound_protein_set.add(items.bound_protein.strip())
+        
+        if ',' in items.mutation_status:
+            for mutation in items.mutation_status.split(','):
+                mutation_set.add(mutation.strip())
+        else:
+            mutation_set.add(items.mutation_status.strip())
+           
+    count_entire_set=dict()
+   
+    for item in Clusters.query.all():
+        if ',' in item.bound_protein:
+            for proteins in item.bound_protein.split(','):
+                state1_form1_list[f'{item.conformational_state};{proteins}']=Clusters.query.filter(Clusters.conformational_state.contains(item.conformational_state),Clusters.bound_protein.contains(proteins)).count()
+        else:
+            state1_form1_list[f'{item.conformational_state};{item.bound_protein}']=Clusters.query.filter(Clusters.conformational_state.contains(item.conformational_state),Clusters.bound_protein.contains(item.bound_protein)).count()
+    
+    for conf in conformation_set:
+        confChainCount[conf]=Clusters.query.filter(Clusters.conformational_state.contains(conf)).count()
 
-#     clusterListDb=list(natsorted(set(sorted(clusterListDb))))
-#     cluster_cdr_list=list(natsorted(set(sorted(cluster_cdr_list))))
-#     pdbListDb=list(natsorted(set(sorted(pdbListDb))))
+    return natsorted(pdb_set),natsorted(conformation_set),natsorted(drug_class_set),natsorted(bound_protein_class_set),natsorted(mutation_set),confChainCount,count_entire_set
 
-#     for cluster in cluster_cdr_list:
-#             clusterChainCount[cluster]=perCDR.query.filter(perCDR.cluster.contains(cluster)).count()  #Incorrect count for cdr-length due to substring mismatch
-
-#     clusterChainCount['H1-All']=perCDR.query.filter(perCDR.cluster.contains('H1')).count()
-#     clusterChainCount['H2-All']=perCDR.query.filter(perCDR.cluster.contains('H2')).count()
-#     clusterChainCount['H3-All']=perCDR.query.filter(perCDR.cluster.contains('H3')).count()
-#     clusterChainCount['L1-All']=perCDR.query.filter(perCDR.cluster.contains('L1')).count()
-#     clusterChainCount['L2-All']=perCDR.query.filter(perCDR.cluster.contains('L2')).count()
-#     clusterChainCount['L3-All']=perCDR.query.filter(perCDR.cluster.contains('L3')).count()
-    return pdbListDb
-
-def count_entries(Clusters):
+def count_entries(Clusters):    #generalize this function
     pdb_list=dict();entry_count=dict()
     pdb_list['All']=list();pdb_list['KRAS']=list();pdb_list['HRAS']=list();pdb_list['NRAS']=list();
     pdb_list['All']=[pdbs.pdb[:4] for pdbs in Clusters.query.all()]
@@ -139,56 +151,66 @@ def about():
 def browse():
     return redirect(url_for('uniqueQuery',settings='All',queryname='All'))
 
-    
-
-
-@app.route('/statistics')
-def statistics():
-#     pdb_species_unique=dict();gene_unique=dict();entries=dict()
-#     (pdbListDb,chainListDb,clusterListDb,clusterChainCount,cluster_cdr_list)=create_lists()
-#     for cluster in clusterListDb:
-#         #cluster_list=perCDR.query.filter(perCDR.cluster.contains(queryname)).all()
-#         entries[cluster]=perCDR.query.filter(perCDR.cluster.contains(cluster)).count()
-#         pdb_species_list=perCDR.query.filter(perCDR.cluster.contains(cluster)).with_entities('pdb_species')
-#         pdb_species_unique[cluster]=pd.Series(names[0] for names in pdb_species_list).unique()
-#         gene_list=perCDR.query.filter(perCDR.cluster.contains(cluster)).with_entities('gene')
-#         gene_unique[cluster]=pd.Series(names[0] for names in gene_list).unique()
-
-    return('home.html')
-#     return render_template('statistics.html',clusterListDb=clusterListDb,entries=entries,pdb_species_unique=pdb_species_unique,gene_unique=gene_unique)
-
-@app.route('/formSearch', methods=['GET','POST'])
-def formSearch():
-    (pdbListDb)=create_lists()
+@app.route('/formSearchPDB', methods=['GET','POST'])
+def formSearchPDB():
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
 
     if request.method=='POST':
-        inputString=request.form['inputString'].lower()
-        print(pdbListDb,inputString)
-        if inputString in pdbListDb:    #match without chain
-            return redirect(url_for('uniqueQuery',queryname=inputString,settings='PDB'))
+        inputString=request.form['pdb_select']
+        return redirect(url_for('uniqueQuery',queryname=inputString,settings='PDB'))
        
-        else:
-            return render_template('nomatch.html')
+    
+    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
 
-    return render_template('search.html')
+@app.route('/formSearchConf', methods=['GET','POST'])
+def formSearchConf():
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
 
-# @app.route('/formSearchMultiple',methods=['GET','POST'])
-# def formSearchMultiple():
-#     (pdbListDb,chainListDb,clusterListDb,clusterChainCount,cluster_cdr_list)=create_lists()
-#     if request.method=='POST':
-#         cdr_select=request.form['cdr_select']
+    if request.method=='POST':
+        inputString=request.form['conf_select']
+        return redirect(url_for('uniqueQuery',queryname=inputString,settings='conformation'))
+       
+    
+    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
 
-#         if cdr_select=='All':
-#             return redirect(url_for('browse'))
-#         elif 'All' in cdr_select:
-#             cdr_select=cdr_select[0:-4]
-#             return redirect(url_for('uniqueQuery',settings='cdr',queryname=cdr_select))
-#         elif cdr_select in clusterListDb:
-#             return redirect(url_for('uniqueQuery',settings='cluster',queryname=cdr_select))
-#         else:
-#             return redirect(url_for('uniqueQuery',settings='cdr_length',queryname=cdr_select))
 
-#     return render_template ('search.html', pdbListDb=pdbListDb, clusterListDb=clusterListDb, clusterChainCount=clusterChainCount, cluster_cdr_list=cluster_cdr_list)
+@app.route('/formSearchMut', methods=['GET','POST'])
+def formSearchMut():
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+
+    if request.method=='POST':
+        inputString=request.form['mutation_select']
+        return redirect(url_for('uniqueQuery',queryname=inputString,settings='mutation'))
+       
+    
+    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+
+@app.route('/formSearchDrug', methods=['GET','POST'])
+def formSearchDrug():
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+
+    if request.method=='POST':
+        inputString=request.form['drug_class_select']
+        return redirect(url_for('uniqueQuery',queryname=inputString,settings='drug_class'))
+       
+    
+    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+
+@app.route('/formSearchBP', methods=['GET','POST'])
+def formSearchBP():
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+
+    if request.method=='POST':
+        inputString=request.form['bound_protein_class_select']
+        return redirect(url_for('uniqueQuery',queryname=inputString,settings='bound_protein_class'))
+       
+    
+    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
 
 
 @app.route('/webserver', methods=['GET','POST'])
@@ -220,12 +242,7 @@ def uniqueQuery(settings,queryname):
             queryname=queryname[0:4]           #Remove chain so that only PDB id is always searched
         pdb_list=Clusters.query.filter(Clusters.pdb.contains(queryname)).all()
         pdb_count=Clusters.query.filter(Clusters.pdb.contains(queryname)).count()
-        #pdb_resolution=perCDR.query.filter(perCDR.pdb.contains(queryname)).with_entities('resolution').first()[0]
-
-        #vl_species=perCDR.query.filter(perCDR.pdb.contains(queryname),perCDR.cdr.contains('L')).with_entities('pdb_species').first()[0]
-        #tsvFile=f'downloads/text-files/{queryname}.tab'
-        #write_text_file(pdb_list,tsvFile,True)
-
+       
         return render_template('pdbs.html',queryname=queryname,pdb_list=pdb_list,pdb_count=pdb_count)
 
     if settings=='All':
@@ -238,90 +255,49 @@ def uniqueQuery(settings,queryname):
     
         return render_template('browse.html',retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
 
+    if settings=='conformation':
+        retrieve_str=dict();chain_count=dict();entry_count=dict()
+        retrieve_str['All']=Clusters.query.filter(Clusters.conformational_state.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.conformational_state.contains(queryname)).count()
+        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.conformational_state.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
+        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.conformational_state.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
+        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.conformational_state.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
+        entry_count=count_entries(Clusters)   #generalize this function
+    
+        return render_template('conformation.html',queryname=queryname,retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+    
+    if settings=='bound_protein_class':
+        retrieve_str=dict();chain_count=dict();entry_count=dict()
+        retrieve_str['All']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname)).count()
+        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.bound_protein_class.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
+        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.bound_protein_class.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
+        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.bound_protein_class.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
+        entry_count=count_entries(Clusters)   #generalize this function
+    
+        return render_template('bound_protein_class.html',queryname=queryname, retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+
+    if settings=='mutation':
+        retrieve_str=dict();chain_count=dict();entry_count=dict()
+        retrieve_str['All']=Clusters.query.filter(Clusters.mutation_status.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.mutation_status.contains(queryname)).count()
+        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.mutation_status.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
+        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.mutation_status.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
+        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.mutation_status.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
+        entry_count=count_entries(Clusters)   #generalize this function
+    
+        return render_template('mutation.html',queryname=queryname,retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+    
+    if settings=='drug_class':
+        retrieve_str=dict();chain_count=dict();entry_count=dict()
+        retrieve_str['All']=Clusters.query.filter(Clusters.drug_class.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.drug_class.contains(queryname)).count()
+        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.drug_class.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
+        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.drug_class.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
+        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.drug_class.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
+        entry_count=count_entries(Clusters)   #generalize this function
+    
+        return render_template('drug_class.html',queryname=queryname, retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+
+
+
         
-#     if settings=='cluster':
-#         cluster_list=perCDR.query.filter(perCDR.cluster.contains(queryname)).all()
-#         cluster_cdr_length=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('cdr_length').first()[0]
-#         cluster_cdr=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('cdr').first()[0]
-#         pdb_count=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('pdb')
-#         pdb_unique_count=len(pd.Series(names[0] for names in pdb_count).unique())
-#         chain_count=perCDR.query.filter(perCDR.cluster.contains(queryname)).count()    #This is number of chains with a given cluster
-#         per_loop=percent_loop_length(chain_count,queryname)
-#         seq_in_cluster=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('sequence')
-#         seq_unique_count=len(pd.Series(names[0] for names in seq_in_cluster).unique())
-#         pdb_species_list=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('pdb_species')
-#         pdb_species_unique=pd.Series(names[0] for names in pdb_species_list).sort_values().unique()
-#         gene_list=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('gene')
-#         gene_unique=pd.Series(names[0] for names in gene_list).unique()
-#         rama_list=perCDR.query.filter(perCDR.cluster.contains(queryname)).with_entities('rama4')
-#         (most_common_rama_count,most_common_rama_string )=most_common_rama(rama_list)
-#         tsvFile=f'downloads/text-files/{queryname}.tab'
-#         write_text_file(cluster_list,tsvFile,True)
-#         return render_template('cluster.html',queryname=queryname,cluster_list=cluster_list,cluster_cdr_length=cluster_cdr_length,\
-#                                cluster_cdr=cluster_cdr,pdb_unique_count=pdb_unique_count,chain_count=chain_count,per_loop=per_loop,\
-#                                    seq_unique_count=seq_unique_count,pdb_species_unique=pdb_species_unique,gene_unique=gene_unique,\
-#                                        most_common_rama_count=most_common_rama_count,most_common_rama_string=most_common_rama_string,tsvFile=tsvFile)
-
-#     if settings=='cdr':
-#         cdr_list=perCDR.query.filter(perCDR.cdr.contains(queryname)).all()
-#         pdb_count=perCDR.query.filter(perCDR.cdr.contains(queryname)).with_entities('pdb')
-#         pdb_unique_count=len(pd.Series(names[0] for names in pdb_count).unique())
-#         chain_count=perCDR.query.filter(perCDR.cdr.contains(queryname)).count()    #This is number of chains with a given cluster
-#         pdb_species_list=perCDR.query.filter(perCDR.cdr.contains(queryname)).with_entities('pdb_species')
-#         pdb_species_unique=pd.Series(names[0] for names in pdb_species_list).unique()
-#         gene_list=perCDR.query.filter(perCDR.cdr.contains(queryname)).with_entities('gene')
-#         gene_unique=pd.Series(names[0] for names in gene_list).unique()
-#         tsvFile=f'downloads/text-files/{queryname}.tab'
-#         write_text_file(cdr_list,tsvFile,True)
-#         return render_template('cdr.html',queryname=queryname,cdr_list=cdr_list,pdb_unique_count=pdb_unique_count,chain_count=chain_count,\
-#                                pdb_species_unique=pdb_species_unique,gene_unique=gene_unique,tsvFile=tsvFile)
-
-#     if settings=='cdr_length':
-#         cdr_length_list=perCDR.query.filter(perCDR.cdr_length.contains(queryname)).all()
-#         cdr_cdr_length=perCDR.query.filter(perCDR.cdr_length.contains(queryname)).with_entities('cdr').first()[0]
-#         pdb_count=perCDR.query.filter(perCDR.cdr_length.contains(queryname)).with_entities('pdb')
-#         pdb_unique_count=len(pd.Series(names[0] for names in pdb_count).unique())
-#         chain_count=perCDR.query.filter(perCDR.cdr_length.contains(queryname)).count()    #This is number of chains with a given cluster
-#         pdb_species_list=perCDR.query.filter(perCDR.cdr_length.contains(queryname)).with_entities('pdb_species')
-#         pdb_species_unique=pd.Series(names[0] for names in pdb_species_list).unique()
-#         gene_list=perCDR.query.filter(perCDR.cdr_length.contains(queryname)).with_entities('gene')
-#         gene_unique=pd.Series(names[0] for names in gene_list).unique()
-#         tsvFile=f'downloads/text-files/{queryname}.tab'
-#         write_text_file(cdr_length_list,tsvFile,True)
-#         return render_template('cdr_length.html',queryname=queryname,cdr_cdr_length=cdr_cdr_length,cdr_length_list=cdr_length_list,\
-#                                pdb_unique_count=pdb_unique_count,chain_count=chain_count,pdb_species_unique=pdb_species_unique,\
-#                                    gene_unique=gene_unique,tsvFile=tsvFile)
-
-#     if settings=='germline':
-#         queryname=queryname.split('*')[0]
-#         germline_list=perVRegion.query.filter(perVRegion.vh_framework.contains(queryname)).all()
-
-#         if germline_list:    #First check for VH germline and then for VL
-#             tsvFile=f'downloads/text-files/{queryname}.tab'
-#             write_text_file(germline_list,tsvFile,False)
-#             return render_template('germline.html',queryname=queryname,germline_list=germline_list,tsvFile=tsvFile)
-#         else:
-#             germline_list=perVRegion.query.filter(perVRegion.vl_framework.contains(queryname)).all()
-#             tsvFile=f'downloads/text-files/{queryname}.tab'
-#             write_text_file(germline_list,tsvFile,False)
-#             return render_template('germline.html',queryname=queryname,germline_list=germline_list,tsvFile=tsvFile)
-
-#     if settings=='frame_germline':
-#         queryname=queryname.split('*')[0]
-#         germline_list=perCDR.query.filter(perCDR.frame_germline.contains(queryname)).all()
-#         tsvFile=f'downloads/text-files/{queryname}.tab'
-#         write_text_file(germline_list,tsvFile,True)
-
-#         return render_template('germline.html',queryname=queryname,germline_list=germline_list,tsvFile=tsvFile)
-
-#     if settings=='cdr_germline':
-#         queryname=queryname.split('*')[0]
-#         germline_list=perCDR.query.filter(perCDR.cdr_germline.contains(queryname)).all()
-#         tsvFile=f'downloads/text-files/{queryname}.tab'
-#         write_text_file(germline_list,tsvFile,True)
-
-#         return render_template('germline.html',queryname=queryname,germline_list=germline_list,tsvFile=tsvFile)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
