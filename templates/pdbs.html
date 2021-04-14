@@ -11,46 +11,60 @@
       <div class="row">
         <div class="col-lg-11 col-md-11 col-sm-11 col-xs-12">
           <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-8">
               <div class="card  border-light mb-3  very-dark-text">
                   <div class="card-header dark-background-trans"><h4 style="color:white;"><a style="color:white;" href="https://www.rcsb.org/structure/{{ queryname.lower() }}" target="_blank">{{ queryname }}</a></h4></div>
                     <div class="card-body light-grey-background">
-                        <h5 class="card-title">Protein Name:</h5>
+                      <div class="row">
+                      <div class="col-lg-6">
+                        <table class="table very-dark-text">
+                        <tr>
+                          <td style='text-align:left;'><h5>Protein Name</h5></td>
+                          <td style='text-align:left;color: #7a72ab;'><h5>{{ protein_name }}</h5></td>
+                        </tr>
+                        <tr>
+                          <td style='text-align:left;'><h5>Experiment Type</h5></td>
+                          <td style='text-align:left;color: #7a72ab;'>{{ experiment_type }}</td>
+                        </tr>
+                        <tr>
+                          <td style='text-align:left;'><h5>Resolution</h5></td>
+                          <td style='text-align:left;color: #7a72ab;'>{{ resolution }}</td>
+                        </tr>
+                        <tr>
+                          <td style='text-align:left;'><h5>R-factor</h5></td>
+                          <td style='text-align:left;color: #7a72ab;'>{{ rfactor }}</td>
+                        </tr>
+
+                      </table>
                     </div>
+
+                    <div class='col-lg-6'>
+                      <table class="table very-dark-text">
+                        <tr>
+                          <td style='text-align:left;'><h5>Crystal Form</h5></td>
+                          <td style='text-align:left;color: #7a72ab;'>{{ crystal_form }}</td>
+                        </tr>
+                        <tr>
+                         <td style='text-align:left;'><h5>Homodimer Status</h5></td>
+                         <td style='text-align:left;color: #7a72ab;'>{{ homodimer_status }}</td>
+                       </tr>
+                       <tr>
+                         <td style='text-align:left;'><h5>Residue Range</h5></td>
+                         <td style='text-align:left;color: #7a72ab;'>{{ residue_range }}</td>
+                       </tr>
+                       <tr>
+                         <td style='text-align:left;'><h5>PMID</h5></td>
+                         <td style='text-align:left;color: #7a72ab;'>{{ pmid }}</td>
+                       </tr>
+                      </table>
+
+                    </div>
+                  </div>
                   </div>
                 </div>
-
-                <div class="col-lg-6">
-                    <table class="table  table-striped dark-accent-text">
-                        <thead class="thead-light">
-                            <tr>
-                              <th scope="col" style='text-align:center;'>Mutation Status</th>
-                              <th scope="col" style='text-align:center;'>Bound Protein</th>
-                              <th scope="col" style='text-align:center;'>Bound Peptide</th>
-                              <th scope="col" style='text-align:center;'>Homodimer Status</th>
-                              <th scope="col" style='text-align:center;'>Experiment Type</th>
-                              <th scope="col" style='text-align:center;'>Resolution</th>
-                              <th scope="col" style='text-align:center;'>R-factor</th>
-                              <th scope="col" style='text-align:center;'>Crystal Form</th>
-                              <th scope="col" style='text-align:center;'>Residue Range</th>
-                              <th scope="col" style='text-align:center;'>PMID</th>
-                            </tr>
-                          </thead>
-
-                          <tr>
-                            <td style='text-align:center;'></td>
-                            <td style='text-align:center;'></td>
-                            <td style='text-align:center;'></td>
-                            <td style='text-align:center;'></td>
-                            <td style='text-align:center;'></td>
-                            <td style='text-align:center;'></td>
-                            <td style='text-align:center;'></td>
-                          </tr>
-
-                        </table>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+            </div>
+          </div>
 
               <div class="col-lg-11 col-md-11 col-sm-11 col-xs-12">
                 <hr class="my-4 light-grey-background">
@@ -67,6 +81,9 @@
                         <th scope="col" style='text-align:left;'>Bound Nucleotide Class</th>
                         <th scope="col" style='text-align:left;'>Bound Drug</th>
                         <th scope="col" style='text-align:left;'>Bound Drug Class</th>
+                        <th scope="col" style='text-align:left;'>Bound Protein</th>
+                        <th scope="col" style='text-align:left;'>Bound Peptide</th>
+                        <th scope="col" style='text-align:left;'>Mutation Status</th>
                         <th scope="col" style='text-align:left;'>Switch 1 Cluster</th>
                         <th scope="col" style='text-align:left;'>Switch 2 Cluster</th>
                         <th scope="col" style='text-align:left;'>Conformational State</th>
@@ -75,10 +92,13 @@
                       {% for item in pdb_list %}
                       <tr style="line-height:20px;">
                         <td style='text-align:left;'>{{ item.pdb }}</td>
-                        <td style='text-align:left;'></td>
+                        <td style='text-align:left;'>{{ item.nucleotide }}</td>
                         <td style='text-align:left;'>{{ item.nucleotide_class }}</td>
-                        <td style='text-align:left;'></td>
+                        <td style='text-align:left;'>{{ item.drug }}</td>
                         <td style='text-align:left;'>{{ item.drug_class }}</a></td>
+                        <td style='text-align:left;'>{{ item.bound_protein }}</td>
+                        <td style='text-align:left;'>{{ item.bound_peptide }}</td>
+                        <td style='text-align:left;'>{{ item.mutation_status }}</td>
                         <td style='text-align:left;'>{{ item.switch1_cluster }}</td>
                         <td style='text-align:left;'>{{ item.switch2_cluster }}</td>
                         <td style='text-align:left;'>{{ item.conformational_state }}</td>

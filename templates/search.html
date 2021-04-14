@@ -12,24 +12,24 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-11 col-md-11 col-sm-11 col-xs-11">
-          <h3 class="very-dark-text">Search database by</h3>
+          <h3 class="very-dark-text">Search the database by</h3>
           <br>
 
           <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
             <li class="nav-item">
-              <a class="nav-link active" data-toggle="tab" role="tab" id="PDB-tab" href="#PDB" aria-controls="PDB" aria-selected="true">PDB</a>
+              <a class="nav-link active" data-toggle="tab" role="tab" id="PDB-tab" href="#PDB" aria-controls="PDB" aria-selected="true"><h4>PDB</h4></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" data-toggle="tab" id="Conformation-tab" href="#Conformation" role="tab" aria-controls="Conformation" aria-selected="false">RAS Conformation</a>
+              <a class="nav-link" data-toggle="tab" id="Conformation-tab" href="#Conformation" role="tab" aria-controls="Conformation" aria-selected="false"><h4>RAS Conformation</h4></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" data-toggle="tab" id="Mutation-tab" href="#Mutation" role="tab" aria-controls="Mutation" aria-selected="false">Mutation</a>
+              <a class="nav-link" data-toggle="tab" id="Mutation-tab" href="#Mutation" role="tab" aria-controls="Mutation" aria-selected="false"><h4>Mutation</h4></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" data-toggle="tab" id="Drug-class-tab" href="#Drug-class" role="tab" aria-controls="Drug-class" aria-selected="false">Drug Class</a>
+              <a class="nav-link" data-toggle="tab" id="Drug-class-tab" href="#Drug-class" role="tab" aria-controls="Drug-class" aria-selected="false"><h4>Drug Class</h4></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" data-toggle="tab" id="Bound-protein-class-tab" href="#Bound-protein-class" role="tab" aria-controls="Bound-protein-class" aria-selected="false">Bound Protein Class</a>
+              <a class="nav-link" data-toggle="tab" id="Bound-protein-class-tab" href="#Bound-protein-class" role="tab" aria-controls="Bound-protein-class" aria-selected="false"><h4>Bound Protein Class</h4></a>
             </li>
           </ul>
           <br>
@@ -104,7 +104,7 @@
       <form action="/formSearchBP" method="POST">
         <div class="form-group very-dark-text">
 
-        <select class="selectpicker" data-live-search="true" data-width="100%" name="bound_protein_clas_select">
+        <select class="selectpicker" data-live-search="true" data-width="100%" name="bound_protein_class_select">
             {% for item in bound_protein_class_set %}
             <option value="{{ item }}">{{ item }}</option>
             {% endfor %}
