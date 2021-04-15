@@ -58,7 +58,7 @@
 
                 <select class="selectpicker" data-live-search="true" data-width="100%" name="conf_select">
                     {% for item in conformation_set %}
-                    <option value="{{ item }}">{{ item }}</option>
+                    <option value="{{ item }}" data-subtext='{% for nucleo in nucleotide_class_set %}{{ nucleotide_class_count_dict[nucleo,item] }}{{ nucleo }} {% endfor %} chains'>{{ item }}</option>
                     {% endfor %}
                 </select>
               </div>
@@ -74,7 +74,7 @@
 
             <select class="selectpicker" data-live-search="true" data-width="100%" name="mutation_select">
                 {% for item in mutation_set %}
-                <option value="{{ item }}">{{ item }}</option>
+                <option value="{{ item }}" data-subtext='{% for nucleo in nucleotide_class_set %}{{ nucleotide_class_count_dict[nucleo,item] }}{{ nucleo }} {% endfor %} chains'>{{ item }}</option>
                 {% endfor %}
             </select>
           </div>
@@ -90,7 +90,7 @@
 
           <select class="selectpicker" data-live-search="true" data-width="100%" name="drug_class_select">
               {% for item in drug_class_set %}
-              <option value="{{ item }}">{{ item }}</option>
+              <option value="{{ item }}" data-subtext='{% for nucleo in nucleotide_class_set %}{{ nucleotide_class_count_dict[nucleo,item] }}{{ nucleo }} {% endfor %} chains'>{{ item }}</option>
               {% endfor %}
           </select>
         </div>
@@ -106,7 +106,7 @@
 
         <select class="selectpicker" data-live-search="true" data-width="100%" name="bound_protein_class_select">
             {% for item in bound_protein_class_set %}
-            <option value="{{ item }}">{{ item }}</option>
+            <option value="{{ item }}" data-subtext='{% for nucleo in nucleotide_class_set %}{{ nucleotide_class_count_dict[nucleo,item] }}{{ nucleo }} {% endfor %} chains'>{{ item }}</option>
             {% endfor %}
         </select>
       </div>

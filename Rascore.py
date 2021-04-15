@@ -80,15 +80,15 @@ class Clusters(db.Model):
 
 def create_lists():
     pdb_set=set();conformation_set=set();bound_protein_set=set();bound_protein_class_set=set();nucleotide_class_set=set();drug_class_set=set()
-    mutation_set=set();state1_form1_list=dict();confChainCount=dict()
+    mutation_set=set();nucleotide_class_count_dict=dict()
             
     for items in Clusters.query.all():
         pdb_set.add(items.pdb[:4])
         conformation_set.add(items.conformational_state.strip())
-        nucleotide_class_set.add(items.nucleotide_class.strip())
+        nucleotide_class_set.add(items.nucleotide_class.strip('"'))
         drug_class_set.add(items.drug_class.strip())
         bound_protein_class_set.add(items.bound_protein_class.strip())   #Check if these variables can also have ',' in them
-        
+       
         if ',' in items.bound_protein:
             for protein in items.bound_protein.split(','):
                 bound_protein_set.add(protein.strip())
@@ -101,19 +101,36 @@ def create_lists():
         else:
             mutation_set.add(items.mutation_status.strip())
            
-    count_entire_set=dict()
+    conformation_set.add('All') ;mutation_set.add('All');drug_class_set.add('All');bound_protein_class_set.add('All')
+  
    
-    for item in Clusters.query.all():
-        if ',' in item.bound_protein:
-            for proteins in item.bound_protein.split(','):
-                state1_form1_list[f'{item.conformational_state};{proteins}']=Clusters.query.filter(Clusters.conformational_state.contains(item.conformational_state),Clusters.bound_protein.contains(proteins)).count()
-        else:
-            state1_form1_list[f'{item.conformational_state};{item.bound_protein}']=Clusters.query.filter(Clusters.conformational_state.contains(item.conformational_state),Clusters.bound_protein.contains(item.bound_protein)).count()
+    for nucleo in nucleotide_class_set:
+        for conf in conformation_set:
+            if conf=='All':
+                nucleotide_class_count_dict[nucleo,conf]=Clusters.query.filter(Clusters.nucleotide_class.contains(nucleo)).count()
+            else:    
+                nucleotide_class_count_dict[nucleo,conf]=Clusters.query.filter(Clusters.conformational_state.contains(conf),Clusters.nucleotide_class.contains(nucleo)).count()
+        
+        for mut in mutation_set:
+            if mut=='All':
+                nucleotide_class_count_dict[nucleo,conf]=Clusters.query.filter(Clusters.nucleotide_class.contains(nucleo)).count()
+            else:
+                nucleotide_class_count_dict[nucleo,mut]=Clusters.query.filter(Clusters.mutation_status.contains(mut),Clusters.nucleotide_class.contains(nucleo)).count()
+        
+        for drug in drug_class_set:
+            if drug=='All':                                
+                nucleotide_class_count_dict[nucleo,conf]=Clusters.query.filter(Clusters.nucleotide_class.contains(nucleo)).count()
+            else:
+                nucleotide_class_count_dict[nucleo,drug]=Clusters.query.filter(Clusters.drug_class.contains(drug),Clusters.nucleotide_class.contains(nucleo)).count()
+        
+        for bp in bound_protein_class_set:
+            if bp=='All':
+                nucleotide_class_count_dict[nucleo,conf]=Clusters.query.filter(Clusters.nucleotide_class.contains(nucleo)).count()
+            else:
+                nucleotide_class_count_dict[nucleo,bp]=Clusters.query.filter(Clusters.bound_protein_class.contains(bp),Clusters.nucleotide_class.contains(nucleo)).count()
     
-    for conf in conformation_set:
-        confChainCount[conf]=Clusters.query.filter(Clusters.conformational_state.contains(conf)).count()
-
-    return natsorted(pdb_set),natsorted(conformation_set),natsorted(drug_class_set),natsorted(bound_protein_class_set),natsorted(mutation_set),confChainCount,count_entire_set
+    
+    return natsorted(pdb_set),natsorted(conformation_set),natsorted(drug_class_set),natsorted(bound_protein_class_set),natsorted(mutation_set,key=lambda x: x.replace('All', 'A00')),nucleotide_class_set,nucleotide_class_count_dict
 
 def count_entries(Clusters):    #generalize this function
     pdb_list=dict();entry_count=dict()
@@ -128,23 +145,15 @@ def count_entries(Clusters):    #generalize this function
     return entry_count
     
     
-def write_text_file(sublist,tsvFile,cdr_format):
-    print(cdr_format)
+def write_text_file(sublist,tsvFile):
     fhandle_textFile=open(f'{pwd}/static/{tsvFile}','w')
-    if cdr_format:     #Header for perCDR files
-        fhandle_textFile.write('CDR\tCDR Length\tPDB\tChain\tResolution\tAHO Resnum\tAuthor Resnum\tSequence\tGermline Sequence\tGene\tPDB Species\tFrame Germline\tCluster\tDistance\tCDR Germline\tCDR Seqid\tRama4\tBeta Turns\tMinimum EDIA\n')
-        for item in sublist:
-            fhandle_textFile.write(f'{item.cdr}\t{item.cdr_length}\t{item.pdb}\t{item.chain}\t{item.resolution}\t{item.aho_resnum}\t\
-                                   {item.author_resnum}\t{item.sequence}\t{item.germline_sequence}\t{item.gene}\t{item.pdb_species}\t\
-                                   {item.frame_germline}\t{item.cluster}\t{item.distance}\t{item.cdr_germline}\t{item.cdr_seqid}\t\
-                                   {item.rama4}\t{item.beta_turns}\t{item.minimum_edia}\n')
+    
+    fhandle_textFile.write('PDB ID\tGene Name\tProtein Name\tBound Protein\tBound Peptide\tMutation Status\tNucleotide Class\tDrug Class\tBound Protein Class\tHomodimer Status\tSwitch 1 Cluster\tSwitch 2 Cluster\tConformational State\tResidue Range\tNucleotide\tDrug\tOther Ligands\tExperiment Type\tResolution\tR-Factor\tCrystal Form\tDeposit Date\tPMID\n')
+    for item in sublist:
+        fhandle_textFile.write(f'{item.pdb}\t{item.gene_name}\t{item.protein_name}\t{item.bound_protein}\t{item.bound_peptide}\t{item.mutation_status}\t{item.nucleotide_class}\t{item.drug_class}\t{item.bound_protein_class}\
+            {item.homodimer_status}\t{item.switch1_cluster}\t{item.switch2_cluster}\t{item.conformational_state}\t{item.residue_range}\t{item.nucleotide}\
+            {item.drug}\t{item.other_ligands}\t{item.experiment_type}\t{item.resolution}\t{item.rfactor}\t{item.crystal_form}\t{item.deposit_date}\t{item.pmid}\n')
 
-    else:    #Header for perVRegion files
-        fhandle_textFile.write('PDB\tVH Chain\tVH Framework\tVH Framework Seqid\tH1 Cluster\tH1 Cluster Distance\tH1 Seqid\tH2 Cluster\tH2 Cluster Distance\tH2 Seqid\tH3 Cluster\tH3 Cluster Distance\tVL Chain\tVL Framework\tVL Framework Seqid\tL1 Cluster\tL1 Cluster Distance\tL1 Seqid\tL2 Cluster\tL2 Cluster Distance\tL2 Seqid\tL3 Cluster\tL3 Cluster Distance\n')
-        for item in sublist:
-            fhandle_textFile.write(f'{item.pdb}\t{item.vh_chain}\t{item.vh_framework}\t{item.vh_framework_seqid}\t{item.h1_cluster}\t{item.h1_cluster_distance}\t{item.h1_seqid}\t\
-                 {item.h2_cluster}\t{item.h2_cluster_distance}\t{item.h2_seqid}\t{item.h3_cluster}\t{item.h3_cluster_distance}\t{item.vl_chain}\t{item.vl_framework}\t{item.vl_framework_seqid}\t\
-                 {item.l1_cluster}\t{item.l1_cluster_distance}\t{item.l1_seqid}\t{item.l2_cluster}\t{item.l2_cluster_distance}\t{item.l2_seqid}\t{item.l3_cluster}\t{item.l3_cluster_distance}\n')
     fhandle_textFile.close()
 
 @app.route('/index')
@@ -163,64 +172,76 @@ def browse():
 
 @app.route('/formSearchPDB', methods=['GET','POST'])
 def formSearchPDB():
-    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,nucleotide_class_set,nucleotide_class_count_dict)=create_lists()
 
     if request.method=='POST':
         inputString=request.form['pdb_select']
         return redirect(url_for('uniqueQuery',queryname=inputString,settings='PDB'))
        
     
-    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
-                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+    return render_template('search.html',pdbListDb=pdbListDb,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set,nucleotide_class_set=nucleotide_class_set,nucleotide_class_count_dict=nucleotide_class_count_dict)
 
 @app.route('/formSearchConf', methods=['GET','POST'])
 def formSearchConf():
-    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,nucleotide_class_set,nucleotide_class_count_dict)=create_lists()
 
     if request.method=='POST':
         inputString=request.form['conf_select']
-        return redirect(url_for('uniqueQuery',queryname=inputString,settings='conformation'))
+        if inputString=='All':
+            return redirect(url_for('uniqueQuery',settings='All',queryname='All'))
+        else:
+            return redirect(url_for('uniqueQuery',queryname=inputString,settings='conformation'))
        
     
-    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
-                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+    return render_template('search.html',pdbListDb=pdbListDb,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set,nucleotide_class_set=nucleotide_class_set,nucleotide_class_count_dict=nucleotide_class_count_dict)
 
 
 @app.route('/formSearchMut', methods=['GET','POST'])
 def formSearchMut():
-    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,nucleotide_class_set,nucleotide_class_count_dict)=create_lists()
 
     if request.method=='POST':
         inputString=request.form['mutation_select']
-        return redirect(url_for('uniqueQuery',queryname=inputString,settings='mutation'))
+        if inputString=='All':
+            return redirect(url_for('uniqueQuery',settings='All',queryname='All'))
+        else:
+            return redirect(url_for('uniqueQuery',queryname=inputString,settings='mutation'))
        
     
-    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
-                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+    return render_template('search.html',pdbListDb=pdbListDb,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set,nucleotide_class_set=nucleotide_class_set,nucleotide_class_count_dict=nucleotide_class_count_dict)
 
 @app.route('/formSearchDrug', methods=['GET','POST'])
 def formSearchDrug():
-    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,nucleotide_class_set,nucleotide_class_count_dict)=create_lists()
 
     if request.method=='POST':
         inputString=request.form['drug_class_select']
-        return redirect(url_for('uniqueQuery',queryname=inputString,settings='drug_class'))
+        if inputString=='All':
+            return redirect(url_for('uniqueQuery',settings='All',queryname='All'))
+        else:
+            return redirect(url_for('uniqueQuery',queryname=inputString,settings='drug_class'))
        
     
-    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
-                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+    return render_template('search.html',pdbListDb=pdbListDb,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set,nucleotide_class_set=nucleotide_class_set,nucleotide_class_count_dict=nucleotide_class_count_dict)
 
 @app.route('/formSearchBP', methods=['GET','POST'])
 def formSearchBP():
-    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set)=create_lists()
+    (pdbListDb,conformation_set,drug_class_set,bound_protein_class_set,mutation_set,confChainCount,count_entire_set,nucleotide_class_set,nucleotide_class_count_dict)=create_lists()
 
     if request.method=='POST':
         inputString=request.form['bound_protein_class_select']
-        return redirect(url_for('uniqueQuery',queryname=inputString,settings='bound_protein_class'))
+        if inputString=='All':
+            return redirect(url_for('uniqueQuery',settings='All',queryname='All'))
+        else:
+            return redirect(url_for('uniqueQuery',queryname=inputString,settings='bound_protein_class'))
        
     
-    return render_template('search.html',pdbListDb=pdbListDb,confChainCount=confChainCount,count_entire_set=count_entire_set,conformation_set=conformation_set,\
-                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set)
+    return render_template('search.html',pdbListDb=pdbListDb,conformation_set=conformation_set,\
+                           drug_class_set=drug_class_set,bound_protein_class_set=bound_protein_class_set,mutation_set=mutation_set,nucleotide_class_set=nucleotide_class_set,nucleotide_class_count_dict=nucleotide_class_count_dict)
 
 
 @app.route('/webserver', methods=['GET','POST'])
@@ -246,6 +267,7 @@ def dunbrackLab():
 
 @app.route('/<settings>/<queryname>')
 def uniqueQuery(settings,queryname):
+    tsvFile=dict();pymolSessionRe=dict();pymolScriptRe=dict();pymolSession=dict();pymolScript=dict()
     if settings=='PDB':
         queryname=queryname.upper()
         if len(queryname)==5:
@@ -267,12 +289,16 @@ def uniqueQuery(settings,queryname):
     if settings=='All':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
         retrieve_str['All']=Clusters.query.all();chain_count['All']=Clusters.query.count()
-        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'));chain_count['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS')).count()
-        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'));chain_count['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS')).count()
-        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'));chain_count['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS')).count()
+        tsvFile['All']='All_RAS.tsv'
+        write_text_file(retrieve_str['All'],tsvFile['All']);
+        for gene in ('HRAS','KRAS','NRAS'):
+            retrieve_str[gene]=Clusters.query.filter(Clusters.protein_name.contains(gene));chain_count[gene]=Clusters.query.filter(Clusters.protein_name.contains(gene)).count()
+            tsvFile[gene]=f'All_{gene}.tsv'
+        
         entry_count=count_entries(Clusters)
     
-        return render_template('browse.html',retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+        return render_template('browse.html',retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count,tsvFile=tsvFile,\
+                               pymolSessionRe=pymolSessionRe,pymolScriptRe=pymolScriptRe,pymolSession=pymolSession,pymolScript=pymolScript)
 
     if settings=='conformation':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
