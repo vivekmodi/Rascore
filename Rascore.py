@@ -104,7 +104,7 @@ def create_lists():
     conformation_set.add('All') ;mutation_set.add('All');drug_class_set.add('All');bound_protein_class_set.add('All')
   
    
-    for nucleo in nucleotide_class_set:
+    for nucleo in nucleotide_class_set:    #For count of chains per nucleotide class in Search menu
         for conf in conformation_set:
             if conf=='All':
                 nucleotide_class_count_dict[nucleo,conf]=Clusters.query.filter(Clusters.nucleotide_class.contains(nucleo)).count()
@@ -132,17 +132,12 @@ def create_lists():
     
     return natsorted(pdb_set),natsorted(conformation_set),natsorted(drug_class_set),natsorted(bound_protein_class_set),natsorted(mutation_set,key=lambda x: x.replace('All', 'A00')),nucleotide_class_set,nucleotide_class_count_dict
 
-def count_entries(Clusters):    #generalize this function
-    pdb_list=dict();entry_count=dict()
-    pdb_list['All']=list();pdb_list['KRAS']=list();pdb_list['HRAS']=list();pdb_list['NRAS']=list();
-    pdb_list['All']=[pdbs.pdb[:4] for pdbs in Clusters.query.all()]
-    pdb_list['HRAS']=[pdbs.pdb[:4] for pdbs in Clusters.query.filter(Clusters.protein_name.contains('HRAS'))]
-    pdb_list['KRAS']=[pdbs.pdb[:4] for pdbs in Clusters.query.filter(Clusters.protein_name.contains('KRAS'))]
-    pdb_list['NRAS']=[pdbs.pdb[:4] for pdbs in Clusters.query.filter(Clusters.protein_name.contains('NRAS'))]
-    entry_count['All']=len(set(pdb_list['All']));entry_count['HRAS']=len(set(pdb_list['HRAS']))
-    entry_count['KRAS']=len(set(pdb_list['KRAS']));entry_count['NRAS']=len(set(pdb_list['NRAS']))
+def count_entries(sublist):      #Count number of PDB entries
+    count=set()
+    for items in sublist:
+        count.add(items.pdb[0:4])
     
-    return entry_count
+    return len(count)
     
     
 def write_text_file(sublist,tsvFile):
@@ -252,10 +247,6 @@ def webserver():
 def download():
     return render_template('download.html')
 
-@app.route('/help')
-def help():
-    return render_template('help.html')
-
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
@@ -282,63 +273,116 @@ def uniqueQuery(settings,queryname):
         residue_range=Clusters.query.filter(Clusters.pdb.contains(queryname)).first().residue_range
         pmid=Clusters.query.filter(Clusters.pdb.contains(queryname)).first().pmid
         
+        tsvFile=f'downloads/text-files/{queryname}.tsv'
+        write_text_file(pdb_list,tsvFile)
+        
         return render_template('pdbs.html',queryname=queryname,pdb_list=pdb_list,protein_name=protein_name,\
                                experiment_type=experiment_type,resolution=resolution,rfactor=rfactor,crystal_form=crystal_form,\
-                               homodimer_status=homodimer_status,residue_range=residue_range,pmid=pmid)
+                               homodimer_status=homodimer_status,residue_range=residue_range,pmid=pmid,tsvFile=tsvFile,\
+                               pymolSession=pymolSession,pymolScript=pymolScript)
 
     if settings=='All':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
         retrieve_str['All']=Clusters.query.all();chain_count['All']=Clusters.query.count()
-        tsvFile['All']='All_RAS.tsv'
-        write_text_file(retrieve_str['All'],tsvFile['All']);
-        for gene in ('HRAS','KRAS','NRAS'):
-            retrieve_str[gene]=Clusters.query.filter(Clusters.protein_name.contains(gene));chain_count[gene]=Clusters.query.filter(Clusters.protein_name.contains(gene)).count()
-            tsvFile[gene]=f'All_{gene}.tsv'
+        entry_count['All']=count_entries(retrieve_str['All'])
+        tsvFile['All']='downloads/text-files/All_RAS.tsv'
+        write_text_file(retrieve_str['All'],tsvFile['All'])
+        pymolSession['All']='downloads/pymolSessions/All_RAS.pse.zip';pymolScript['All']='downloads/pymolScripts/All_RAS.pml.zip'
+        pymolSessionRe['All']='downloads/pymolSessionsRe/Repr_RAS.pse.zip';pymolScriptRe['All']='downloads/pymolScriptsRe/Repr_RAS.pml.zip'
         
-        entry_count=count_entries(Clusters)
-    
+        for gene in ('HRAS','KRAS','NRAS'):
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene));chain_count[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene)).count()
+            entry_count[gene]=count_entries(retrieve_str[gene])
+            tsvFile[gene]=f'downloads/text-files/All_{gene}.tsv'
+            write_text_file(retrieve_str[gene],tsvFile[gene])
+            pymolSession[gene]=f'downloads/pymolSessions/All_{gene}.pse.zip';pymolScript[gene]=f'downloads/pymolScripts/All_{gene}.pml.zip'
+            pymolSessionRe[gene]=f'downloads/pymolSessionsRe/Repr_{gene}.pse.zip';pymolScriptRe[gene]=f'downloads/pymolScriptsRe/Repr_{gene}.pml.zip'
+        
         return render_template('browse.html',retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count,tsvFile=tsvFile,\
                                pymolSessionRe=pymolSessionRe,pymolScriptRe=pymolScriptRe,pymolSession=pymolSession,pymolScript=pymolScript)
 
     if settings=='conformation':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
         retrieve_str['All']=Clusters.query.filter(Clusters.conformational_state.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.conformational_state.contains(queryname)).count()
-        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.conformational_state.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
-        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.conformational_state.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
-        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.conformational_state.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
-        entry_count=count_entries(Clusters)   #generalize this function
+        entry_count['All']=count_entries(retrieve_str['All'])
+        tsvFile['All']=f'downloads/text-files/All_{queryname}.tsv'
+        write_text_file(retrieve_str['All'],tsvFile['All'])
+        pymolSession['All']=f'downloads/pymolSessions/All_{queryname}.pse.zip';pymolScript['All']=f'downloads/pymolScripts/All_{queryname}.pml.zip'
+        pymolSessionRe['All']=f'downloads/pymolSessionsRe/Repr_{queryname}.pse.zip';pymolScriptRe['All']=f'downloads/pymolScriptsRe/Repr_{queryname}.pml.zip'
+        
+        for gene in ('HRAS','KRAS','NRAS'):
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene),Clusters.conformational_state.contains(queryname));chain_count[gene]=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.gene_name.contains(gene)).count()
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene),Clusters.conformational_state.contains(queryname));chain_count[gene]=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.gene_name.contains(gene)).count()
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene),Clusters.conformational_state.contains(queryname));chain_count[gene]=Clusters.query.filter(Clusters.conformational_state.contains(queryname),Clusters.gene_name.contains(gene)).count()
+            entry_count[gene]=count_entries(retrieve_str[gene])
+            tsvFile[gene]=f'downloads/text-files/{gene}_{queryname}.tsv'
+            write_text_file(retrieve_str[gene],tsvFile[gene])
+            pymolSession[gene]=f'downloads/pymolSessions/All_{gene}_{queryname}.pse.zip';pymolScript[gene]=f'downloads/pymolScripts/All_{gene}_{queryname}.pml.zip'
+            pymolSessionRe[gene]=f'downloads/pymolSessionsRe/Repr_{gene}_{queryname}.pse.zip';pymolScriptRe[gene]=f'downloads/pymolScriptsRe/Repr_{gene}_{queryname}.pml.zip'
     
-        return render_template('conformation.html',queryname=queryname,retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+        return render_template('conformation.html',queryname=queryname,retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count,tsvFile=tsvFile,\
+                               pymolSessionRe=pymolSessionRe,pymolScriptRe=pymolScriptRe,pymolSession=pymolSession,pymolScript=pymolScript)
     
     if settings=='bound_protein_class':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
         retrieve_str['All']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname)).count()
-        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.bound_protein_class.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
-        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.bound_protein_class.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
-        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.bound_protein_class.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
-        entry_count=count_entries(Clusters)   #generalize this function
+        entry_count['All']=count_entries(retrieve_str['All'])
+        tsvFile['All']=f'downloads/text-files/All_{queryname}.tsv'
+        write_text_file(retrieve_str['All'],tsvFile['All'])
+        pymolSession['All']=f'downloads/pymolSessions/All_{queryname}.pse.zip';pymolScript['All']=f'downloads/pymolScripts/All_{queryname}.pml.zip'
+        pymolSessionRe['All']=f'downloads/pymolSessionsRe/Repr_{queryname}.pse.zip';pymolScriptRe['All']=f'downloads/pymolScriptsRe/Repr_{queryname}.pml.zip'
+        
+        for gene in ('HRAS','KRAS','NRAS'):
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene),Clusters.bound_protein_class.contains(queryname));chain_count[gene]=Clusters.query.filter(Clusters.bound_protein_class.contains(queryname),Clusters.gene_name.contains(gene)).count()
+            entry_count[gene]=count_entries(retrieve_str[gene])
+            tsvFile[gene]=f'downloads/text-files/{gene}_{queryname}.tsv'
+            write_text_file(retrieve_str[gene],tsvFile[gene])
+            pymolSession[gene]=f'downloads/pymolSessions/All_{gene}_{queryname}.pse.zip';pymolScript[gene]=f'downloads/pymolScripts/All_{gene}_{queryname}.pml.zip'
+            pymolSessionRe[gene]=f'downloads/pymolSessionsRe/Repr_{gene}_{queryname}.pse.zip';pymolScriptRe[gene]=f'downloads/pymolScriptsRe/Repr_{gene}_{queryname}.pml.zip'
+            
     
-        return render_template('bound_protein_class.html',queryname=queryname, retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+        return render_template('bound_protein_class.html',queryname=queryname, retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count,tsvFile=tsvFile,\
+                               pymolSessionRe=pymolSessionRe,pymolScriptRe=pymolScriptRe,pymolSession=pymolSession,pymolScript=pymolScript)
 
     if settings=='mutation':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
         retrieve_str['All']=Clusters.query.filter(Clusters.mutation_status.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.mutation_status.contains(queryname)).count()
-        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.mutation_status.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
-        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.mutation_status.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
-        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.mutation_status.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
-        entry_count=count_entries(Clusters)   #generalize this function
+        entry_count['All']=count_entries(retrieve_str['All'])
+        tsvFile['All']=f'downloads/text-files/All_{queryname}.tsv'
+        write_text_file(retrieve_str['All'],tsvFile['All'])
+        pymolSession['All']=f'downloads/pymolSessions/All_{queryname}.pse.zip';pymolScript['All']=f'downloads/pymolScripts/All_{queryname}.pml.zip'
+        pymolSessionRe['All']=f'downloads/pymolSessionsRe/Repr_{queryname}.pse.zip';pymolScriptRe['All']=f'downloads/pymolScriptsRe/Repr_{queryname}.pml.zip'
+        
+        for gene in ('HRAS','KRAS','NRAS'):
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene),Clusters.mutation_status.contains(queryname));chain_count[gene]=Clusters.query.filter(Clusters.mutation_status.contains(queryname),Clusters.gene_name.contains(gene)).count()
+            entry_count[gene]=count_entries(retrieve_str[gene])
+            tsvFile[gene]=f'downloads/text-files/{gene}_{queryname}.tsv'
+            write_text_file(retrieve_str[gene],tsvFile[gene])
+            pymolSession[gene]=f'downloads/pymolSessions/All_{gene}_{queryname}.pse.zip';pymolScript[gene]=f'downloads/pymolScripts/All_{gene}_{queryname}.pml.zip'
+            pymolSessionRe[gene]=f'downloads/pymolSessionsRe/Repr_{gene}_{queryname}.pse.zip';pymolScriptRe[gene]=f'downloads/pymolScriptsRe/Repr_{gene}_{queryname}.pml.zip'
     
-        return render_template('mutation.html',queryname=queryname,retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+        return render_template('mutation.html',queryname=queryname,retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count,tsvFile=tsvFile,\
+                               pymolSessionRe=pymolSessionRe,pymolScriptRe=pymolScriptRe,pymolSession=pymolSession,pymolScript=pymolScript)
     
     if settings=='drug_class':
         retrieve_str=dict();chain_count=dict();entry_count=dict()
         retrieve_str['All']=Clusters.query.filter(Clusters.drug_class.contains(queryname));chain_count['All']=Clusters.query.filter(Clusters.drug_class.contains(queryname)).count()
-        retrieve_str['HRAS']=Clusters.query.filter(Clusters.protein_name.contains('HRAS'),Clusters.drug_class.contains(queryname));chain_count['HRAS']=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.protein_name.contains('HRAS')).count()
-        retrieve_str['KRAS']=Clusters.query.filter(Clusters.protein_name.contains('KRAS'),Clusters.drug_class.contains(queryname));chain_count['KRAS']=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.protein_name.contains('KRAS')).count()
-        retrieve_str['NRAS']=Clusters.query.filter(Clusters.protein_name.contains('NRAS'),Clusters.drug_class.contains(queryname));chain_count['NRAS']=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.protein_name.contains('NRAS')).count()
-        entry_count=count_entries(Clusters)   #generalize this function
+        entry_count['All']=count_entries(retrieve_str['All'])
+        tsvFile['All']=f'downloads/text-files/All_{queryname}.tsv'
+        write_text_file(retrieve_str['All'],tsvFile['All'])
+        pymolSession['All']=f'downloads/pymolSessions/All_{queryname}.pse.zip';pymolScript['All']=f'downloads/pymolScripts/All_{queryname}.pml.zip'
+        pymolSessionRe['All']=f'downloads/pymolSessionsRe/Repr_{queryname}.pse.zip';pymolScriptRe['All']=f'downloads/pymolScriptsRe/Repr_{queryname}.pml.zip'
+        
+        for gene in ('HRAS','KRAS','NRAS'):
+            retrieve_str[gene]=Clusters.query.filter(Clusters.gene_name.contains(gene),Clusters.drug_class.contains(queryname));chain_count[gene]=Clusters.query.filter(Clusters.drug_class.contains(queryname),Clusters.gene_name.contains(gene)).count()
+            entry_count[gene]=count_entries(retrieve_str[gene])
+            tsvFile[gene]=f'downloads/text-files/{gene}_{queryname}.tsv'
+            write_text_file(retrieve_str[gene],tsvFile[gene])
+            pymolSession[gene]=f'downloads/pymolSessions/All_{gene}_{queryname}.pse.zip';pymolScript[gene]=f'downloads/pymolScripts/All_{gene}_{queryname}.pml.zip'
+            pymolSessionRe[gene]=f'downloads/pymolSessionsRe/Repr_{gene}_{queryname}.pse.zip';pymolScriptRe[gene]=f'downloads/pymolScriptsRe/Repr_{gene}_{queryname}.pml.zip'
     
-        return render_template('drug_class.html',queryname=queryname, retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count)
+        return render_template('drug_class.html',queryname=queryname, retrieve_str=retrieve_str,chain_count=chain_count,entry_count=entry_count,tsvFile=tsvFile,\
+                               pymolSessionRe=pymolSessionRe,pymolScriptRe=pymolScriptRe,pymolSession=pymolSession,pymolScript=pymolScript)
 
 
 

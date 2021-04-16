@@ -53,6 +53,27 @@
                 </div>
               </div>
 
+              <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="padding:0;">
+                <hr class="my-4" style="padding:0;">
+                <a role="button" class="btn button-primary light-text" style="margin:5px;" href="{{ url_for('static', filename=tsvFile['All']) }}" target="_blank">Download as tsv</a>
+
+                <div class="btn-group" style="margin:5px;">
+                  <button type="button" class="btn button-primary dropdown-toggle light-text" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Download in Pymol
+                  </button>
+                  <div class="dropdown-menu">
+                    <h6 class="dropdown-header very-dark-text">Representatives from each gene</h6>
+                    <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSessionRe['All']) }}">Pymol session(ver 2.3)</a>
+                    <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScriptRe['All']) }}">Pymol script</a>
+                    <h6 class="dropdown-header very-dark-text">All chains</h6>
+
+                    <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSession['All']) }}">Pymol session(ver 2.3)</a>
+
+                    <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScript['All']) }}">Pymol script</a>
+
+                  </div>
+                </div>
+              </div>
 
 
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -128,7 +149,27 @@
                   </div>
                 </div>
 
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="padding:0;">
+                  <hr class="my-4" style="padding:0;">
+                  <a role="button" class="btn button-primary light-text" style="margin:5px;" href="{{ url_for('static', filename=tsvFile['KRAS']) }}" target="_blank">Download as tsv</a>
 
+                  <div class="btn-group" style="margin:5px;">
+                    <button type="button" class="btn button-primary dropdown-toggle light-text" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Download in Pymol
+                    </button>
+                    <div class="dropdown-menu">
+                      <h6 class="dropdown-header very-dark-text">Representatives from each gene</h6>
+                      <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSessionRe['KRAS']) }}">Pymol session(ver 2.3)</a>
+                      <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScriptRe['KRAS']) }}">Pymol script</a>
+                      <h6 class="dropdown-header very-dark-text">All chains</h6>
+
+                      <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSession['KRAS']) }}">Pymol session(ver 2.3)</a>
+
+                      <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScript['KRAS']) }}">Pymol script</a>
+
+                    </div>
+                  </div>
+                </div>
 
           <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
           <hr class="my-4" style="padding:0;">
@@ -203,7 +244,27 @@
                     </div>
                   </div>
 
+                  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="padding:0;">
+                    <hr class="my-4" style="padding:0;">
+                    <a role="button" class="btn button-primary light-text" style="margin:5px;" href="{{ url_for('static', filename=tsvFile['HRAS']) }}" target="_blank">Download as tsv</a>
 
+                    <div class="btn-group" style="margin:5px;">
+                      <button type="button" class="btn button-primary dropdown-toggle light-text" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Download in Pymol
+                      </button>
+                      <div class="dropdown-menu">
+                        <h6 class="dropdown-header very-dark-text">Representatives from each gene</h6>
+                        <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSessionRe['HRAS']) }}">Pymol session(ver 2.3)</a>
+                        <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScriptRe['HRAS']) }}">Pymol script</a>
+                        <h6 class="dropdown-header very-dark-text">All chains</h6>
+
+                        <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSession['HRAS']) }}">Pymol session(ver 2.3)</a>
+
+                        <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScript['HRAS']) }}">Pymol script</a>
+
+                      </div>
+                    </div>
+                  </div>
 
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
             <hr class="my-4" style="padding:0;">
@@ -278,6 +339,27 @@
                       </div>
                     </div>
 
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="padding:0;">
+                      <hr class="my-4" style="padding:0;">
+                      <a role="button" class="btn button-primary light-text" style="margin:5px;" href="{{ url_for('static', filename=tsvFile['NRAS']) }}" target="_blank">Download as tsv</a>
+
+                      <div class="btn-group" style="margin:5px;">
+                        <button type="button" class="btn button-primary dropdown-toggle light-text" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Download in Pymol
+                        </button>
+                        <div class="dropdown-menu">
+                          <h6 class="dropdown-header very-dark-text">Representatives from each gene</h6>
+                          <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSessionRe['NRAS']) }}">Pymol session(ver 2.3)</a>
+                          <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScriptRe['NRAS']) }}">Pymol script</a>
+                          <h6 class="dropdown-header very-dark-text">All chains</h6>
+
+                          <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolSession['NRAS']) }}">Pymol session(ver 2.3)</a>
+
+                          <a class="dropdown-item" style='color: #0683bf;' href="{{ url_for('static',filename=pymolScript['NRAS']) }}">Pymol script</a>
+
+                        </div>
+                      </div>
+                    </div>
 
 
               <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
