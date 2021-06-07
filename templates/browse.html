@@ -86,15 +86,18 @@
                         <tr>
                           <th scope="col">PDB</th>
                           <th scope="col">Protein Name</th>
-                          <th scope="col">Bound Protein</th>
                           <th scope="col">Mutation Status</th>
                           <th scope="col">Nucleotide Class</th>
-                          <th scope="col">Drug Class</th>
+                          <th scope="col">Nucleotide</th>
                           <th scope="col">Bound Protein Class</th>
+                          <th scope="col">Bound Protein</th>
+                          <th scope="col">Drug Class</th>
+                          <th scope="col">Drug</th>
                           <th scope="col">Homodimer Status</th>
-                          <th scope="col">Switch1 Cluster</th>
-                          <th scope="col">Switch2 Cluster</th>
-                          <th scope="col">Conformational State</th>
+                          <th scope="col">Y32 Label</th>
+                          <th scope="col">Y71 Label</th>
+                          <th scope="col">Dihedral Switch 1</th>
+                          <th scope="col">Dihedral Switch 2</th>
                           </tr>
                       </thead>
                       {% for item in retrieve_str['All'] %}
@@ -102,7 +105,6 @@
                       <tr>
                         <td><a href="{{ url_for('uniqueQuery', settings='PDB', queryname=item.pdb) }}" target="_blank">{{ item.pdb }}</a></td>
                         <td>{{ item.protein_name }}</td>
-                        <td>{{ item.bound_protein }}</td>
                         {% if ',' in item.mutation_status %}
                         <td>
                           {% for mutations in item.mutation_status.split(',') %}
@@ -115,12 +117,16 @@
                         </td>
                         {% endif %}
                         <td>{{ item.nucleotide_class }}</td>
-                        <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                        <td>{{ item.nucleotide }}</td>
                         <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
+                        <td>{{ item.bound_protein }}</td>
+                        <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                        <td>{{ item.drug }}</td>
                         <td>{{ item.homodimer_status }}</td>
-                        <td>{{ item.switch1_cluster }}</td>
-                        <td>{{ item.switch2_cluster }}</td>
-                        <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
+                        <td>{{ item.spatial_y32 }}</td>
+                        <td>{{ item.spatial_y71 }}</td>
+                        <td>{{ item.dihedral_switch1 }}</td>
+                        <td>{{ item.dihedral_switch2 }}</td>
                       </tr>
 
                       {% endfor %}
@@ -185,15 +191,18 @@
                           <tr>
                             <th scope="col">PDB</th>
                             <th scope="col">Protein Name</th>
-                            <th scope="col">Bound Protein</th>
                             <th scope="col">Mutation Status</th>
                             <th scope="col">Nucleotide Class</th>
-                            <th scope="col">Drug Class</th>
+                            <th scope="col">Nucleotide</th>
                             <th scope="col">Bound Protein Class</th>
+                            <th scope="col">Bound Protein</th>
+                            <th scope="col">Drug Class</th>
+                            <th scope="col">Drug</th>
                             <th scope="col">Homodimer Status</th>
-                            <th scope="col">Switch1 Cluster</th>
-                            <th scope="col">Switch2 Cluster</th>
-                            <th scope="col">Conformational State</th>
+                            <th scope="col">Y32 Label</th>
+                            <th scope="col">Y71 Label</th>
+                            <th scope="col">Dihedral Switch 1</th>
+                            <th scope="col">Dihedral Switch 2</th>
                             </tr>
                         </thead>
                         {% for item in retrieve_str['KRAS'] %}
@@ -201,7 +210,6 @@
                         <tr>
                           <td><a href="{{ url_for('uniqueQuery', settings='PDB', queryname=item.pdb) }}" target="_blank">{{ item.pdb }}</a></td>
                           <td>{{ item.protein_name }}</td>
-                          <td>{{ item.bound_protein }}</td>
                           {% if ',' in item.mutation_status %}
                           <td>
                             {% for mutations in item.mutation_status.split(',') %}
@@ -214,12 +222,16 @@
                           </td>
                           {% endif %}
                           <td>{{ item.nucleotide_class }}</td>
-                          <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                          <td>{{ item.nucleotide }}</td>
                           <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
+                          <td>{{ item.bound_protein }}</td>
+                          <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                          <td>{{ item.drug }}</td>
                           <td>{{ item.homodimer_status }}</td>
-                          <td>{{ item.switch1_cluster }}</td>
-                          <td>{{ item.switch2_cluster }}</td>
-                          <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
+                          <td>{{ item.spatial_y32 }}</td>
+                          <td>{{ item.spatial_y71 }}</td>
+                          <td>{{ item.dihedral_switch1 }}</td>
+                          <td>{{ item.dihedral_switch2 }}</td>
                         </tr>
 
                         {% endfor %}
@@ -283,15 +295,18 @@
                             <tr>
                               <th scope="col">PDB</th>
                               <th scope="col">Protein Name</th>
-                              <th scope="col">Bound Protein</th>
                               <th scope="col">Mutation Status</th>
                               <th scope="col">Nucleotide Class</th>
-                              <th scope="col">Drug Class</th>
+                              <th scope="col">Nucleotide</th>
                               <th scope="col">Bound Protein Class</th>
+                              <th scope="col">Bound Protein</th>
+                              <th scope="col">Drug Class</th>
+                              <th scope="col">Drug</th>
                               <th scope="col">Homodimer Status</th>
-                              <th scope="col">Switch1 Cluster</th>
-                              <th scope="col">Switch2 Cluster</th>
-                              <th scope="col">Conformational State</th>
+                              <th scope="col">Y32 Label</th>
+                              <th scope="col">Y71 Label</th>
+                              <th scope="col">Dihedral Switch 1</th>
+                              <th scope="col">Dihedral Switch 2</th>
                               </tr>
                           </thead>
                           {% for item in retrieve_str['HRAS'] %}
@@ -299,7 +314,6 @@
                           <tr>
                             <td><a href="{{ url_for('uniqueQuery', settings='PDB', queryname=item.pdb) }}" target="_blank">{{ item.pdb }}</a></td>
                             <td>{{ item.protein_name }}</td>
-                            <td>{{ item.bound_protein }}</td>
                             {% if ',' in item.mutation_status %}
                             <td>
                               {% for mutations in item.mutation_status.split(',') %}
@@ -312,12 +326,16 @@
                             </td>
                             {% endif %}
                             <td>{{ item.nucleotide_class }}</td>
-                            <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                            <td>{{ item.nucleotide }}</td>
                             <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
+                            <td>{{ item.bound_protein }}</td>
+                            <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                            <td>{{ item.drug }}</td>
                             <td>{{ item.homodimer_status }}</td>
-                            <td>{{ item.switch1_cluster }}</td>
-                            <td>{{ item.switch2_cluster }}</td>
-                            <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
+                            <td>{{ item.spatial_y32 }}</td>
+                            <td>{{ item.spatial_y71 }}</td>
+                            <td>{{ item.dihedral_switch1 }}</td>
+                            <td>{{ item.dihedral_switch2 }}</td>
                           </tr>
 
                           {% endfor %}
@@ -381,15 +399,18 @@
                               <tr>
                                 <th scope="col">PDB</th>
                                 <th scope="col">Protein Name</th>
-                                <th scope="col">Bound Protein</th>
                                 <th scope="col">Mutation Status</th>
                                 <th scope="col">Nucleotide Class</th>
-                                <th scope="col">Drug Class</th>
+                                <th scope="col">Nucleotide</th>
                                 <th scope="col">Bound Protein Class</th>
+                                <th scope="col">Bound Protein</th>
+                                <th scope="col">Drug Class</th>
+                                <th scope="col">Drug</th>
                                 <th scope="col">Homodimer Status</th>
-                                <th scope="col">Switch1 Cluster</th>
-                                <th scope="col">Switch2 Cluster</th>
-                                <th scope="col">Conformational State</th>
+                                <th scope="col">Y32 Label</th>
+                                <th scope="col">Y71 Label</th>
+                                <th scope="col">Dihedral Switch 1</th>
+                                <th scope="col">Dihedral Switch 2</th>
                                 </tr>
                             </thead>
                             {% for item in retrieve_str['NRAS'] %}
@@ -397,7 +418,6 @@
                             <tr>
                               <td><a href="{{ url_for('uniqueQuery', settings='PDB', queryname=item.pdb) }}" target="_blank">{{ item.pdb }}</a></td>
                               <td>{{ item.protein_name }}</td>
-                              <td>{{ item.bound_protein }}</td>
                               {% if ',' in item.mutation_status %}
                               <td>
                                 {% for mutations in item.mutation_status.split(',') %}
@@ -410,12 +430,16 @@
                               </td>
                               {% endif %}
                               <td>{{ item.nucleotide_class }}</td>
-                              <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                              <td>{{ item.nucleotide }}</td>
                               <td><a href="{{ url_for('uniqueQuery', settings='bound_protein_class', queryname=item.bound_protein_class) }}" target="_blank">{{ item.bound_protein_class }}</a></td>
+                              <td>{{ item.bound_protein }}</td>
+                              <td><a href="{{ url_for('uniqueQuery', queryname=item.drug_class, settings='drug_class') }}" target="_blank">{{ item.drug_class }}</td>
+                              <td>{{ item.drug }}</td>
                               <td>{{ item.homodimer_status }}</td>
-                              <td>{{ item.switch1_cluster }}</td>
-                              <td>{{ item.switch2_cluster }}</td>
-                              <td><a href="{{ url_for('uniqueQuery', settings='conformation',queryname=item.conformational_state) }}" target="_blank">{{ item.conformational_state }}</a></td>
+                              <td>{{ item.spatial_y32 }}</td>
+                              <td>{{ item.spatial_y71 }}</td>
+                              <td>{{ item.dihedral_switch1 }}</td>
+                              <td>{{ item.dihedral_switch2 }}</td>
                             </tr>
 
                             {% endfor %}

@@ -45,9 +45,10 @@ class Clusters(db.Model):
     drug_class=db.Column(db.Text)
     bound_protein_class=db.Column(db.Text)
     homodimer_status=db.Column(db.Text)
-    switch1_cluster=db.Column(db.Text)
-    switch2_cluster=db.Column(db.Text)
-    conformational_state=db.Column(db.Text)
+    spatial_y32=db.Column(db.Text)
+    spatial_y71=db.Column(db.Text)
+    dihedral_switch1=db.Column(db.Text)
+    dihedral_switch2=db.Column(db.Text)
     residue_range=db.Column(db.Text)
     nucleotide=db.Column(db.Text)
     drug=db.Column(db.Text)
@@ -61,22 +62,23 @@ class Clusters(db.Model):
 
     
     def __init__(self,pdb=pdb,gene_name=gene_name,protein_name=protein_name,bound_protein=bound_protein,bound_peptide=bound_peptide,mutation_status=mutation_status,nucleotide_class=nucleotide_class,drug_class=drug_class,\
-                 bound_protein_class=bound_protein_class,homodimer_status=homodimer_status,switch1_cluster=switch1_cluster,\
-                 switch2_cluster=switch2_cluster,conformational_state=conformational_state,residue_range=residue_range,nucleotide=nucleotide,\
+                 bound_protein_class=bound_protein_class,homodimer_status=homodimer_status,spatial_y32=spatial_y32,\
+                 spatial_y71=spatial_y71,dihedral_switch1=dihedral_switch1,dihedral_switch2=dihedral_switch2,residue_range=residue_range,nucleotide=nucleotide,\
                  drug=drug,other_ligands=other_ligands,experiment_type=experiment_type,resolution=resolution,rfactor=rfactor,\
                  crystal_form=crystal_form,deposit_date=deposit_date,pmid=pmid):
 
         self.pdb=pdb;self.gene_name=gene_name;self.protein_name=protein_name;self.bound_protein=bound_protein;self.bound_peptide=bound_peptide;
         self.mutation_status=mutation_status;self.nucleotide_class=nucleotide_class;
         self.drug_class=drug_class;self.bound_protein_class=bound_protein_class;self.homodimer_status=homodimer_status;
-        self.switch1_cluster=switch1_cluster;self.switch2_cluster=switch2_cluster;self.conformational_state=conformational_state;
+        self.spatial_y32=spatial_y32;self.spatial_y71=spatial_y71;self.dihedral_switch1=dihedral_switch1;self.dihedral_switch2=dihedral_switch2;
         self.residue_range=residue_range;self.nucleotide=nucleotide;self.drug=drug;self.other_ligands=other_ligands;self.experiment_type=experiment_type;
         self.resolution=resolution;self.rfactor=rfactor;self.crystal_form=crystal_form;self.deposit_date=deposit_date;self.pmid=pmid;
 
     def __repr__(self):
-        return f'{self.pdb} {self.gene_name} {self.protein_name} {self.bound_protein} {self.bound_peptide} {self.mutation_status} {self.nucleotide_class} {self.drug_class} {self.bound_protein_class}\
-            {self.homodimer_status} {self.switch1_cluster} {self.switch2_cluster} {self.conformational_state} {self.residue_range} {self.nucleotide}\
-            {self.drug} {self.other_ligands} {self.experiment_type} {self.resolution} {self.rfactor} {self.crystal_form} {self.deposit_date} {self.pmid}'
+        return f'{self.pdb} {self.gene_name} {self.protein_name} {self.bound_protein} {self.bound_peptide} {self.mutation_status}\
+            {self.nucleotide_class} {self.drug_class} {self.bound_protein_class} {self.homodimer_status} {self.spatial_y32} {self.spatial_y71}\
+            {self.dihedral_switch1} {self.dihedral_swtich2} {self.residue_range} {self.nucleotide} {self.drug} {self.other_ligands}\
+            {self.experiment_type} {self.resolution} {self.rfactor} {self.crystal_form} {self.deposit_date} {self.pmid}'
 
 def create_lists():
     pdb_set=set();conformation_set=set();bound_protein_set=set();bound_protein_class_set=set();nucleotide_class_set=set();drug_class_set=set()
@@ -143,12 +145,16 @@ def count_entries(sublist):      #Count number of PDB entries
 def write_text_file(sublist,tsvFile):
     fhandle_textFile=open(f'{pwd}/static/{tsvFile}','w')
     
-    fhandle_textFile.write('PDB ID\tGene Name\tProtein Name\tBound Protein\tBound Peptide\tMutation Status\tNucleotide Class\tDrug Class\tBound Protein Class\tHomodimer Status\tSwitch 1 Cluster\tSwitch 2 Cluster\tConformational State\tResidue Range\tNucleotide\tDrug\tOther Ligands\tExperiment Type\tResolution\tR-Factor\tCrystal Form\tDeposit Date\tPMID\n')
+    fhandle_textFile.write('PDB ID\tGene Name\tProtein Name\tMutation Status\tNucleotide Class\tNucleotide\tBound Protein Class\tBound Protein\t\
+                           Drug Class\tDrug\tHomodimer Status\tY32 Label\tY71 Label\tDihedral Switch 1\tDihedral Switch 2\tResidue Range\t\
+                           Other Ligands\tExperiment Type\tResolution\tR-Factor\tCrystal Form\tDeposit Date\tPMID\n')
     for item in sublist:
-        fhandle_textFile.write(f'{item.pdb}\t{item.gene_name}\t{item.protein_name}\t{item.bound_protein}\t{item.bound_peptide}\t{item.mutation_status}\t{item.nucleotide_class}\t{item.drug_class}\t{item.bound_protein_class}\
-            {item.homodimer_status}\t{item.switch1_cluster}\t{item.switch2_cluster}\t{item.conformational_state}\t{item.residue_range}\t{item.nucleotide}\
-            {item.drug}\t{item.other_ligands}\t{item.experiment_type}\t{item.resolution}\t{item.rfactor}\t{item.crystal_form}\t{item.deposit_date}\t{item.pmid}\n')
-
+        fhandle_textFile.write(f'{item.pdb}\t{item.gene_name}\t{item.protein_name}\t{item.mutation_status}\t{item.nucleotide_class}\t\
+                               {item.nucleotide}\t{item.bound_protein_class}\t{item.bound_protein}\t{item.drug_class}\t{item.drug}\t\
+                               {item.homodimer_status}\t{item.spatial_y32}\t{item.spatial_y71}\t{item.dihedral_switch1}\t{item.dihedral_switch2}\t\
+                               {item.residue_range}\t{item.other_ligands}\t{item.experiment_type}\t{item.resolution}\t{item.rfactor}\t\
+                               {item.crystal_form}\t{item.deposit_date}\t{item.pmid}\n')
+                              
     fhandle_textFile.close()
 
 @app.route('/index')

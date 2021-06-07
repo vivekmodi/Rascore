@@ -27,9 +27,10 @@ def update_database(df):
         drug_class=df.at[i,'Drug Class'],\
         bound_protein_class=df.at[i,'Bound Protein Class'],\
         homodimer_status=df.at[i,'Homodimer Status'],\
-        switch1_cluster=df.at[i,'Switch 1 Cluster'],\
-        switch2_cluster=df.at[i,'Switch 2 Cluster'],\
-        conformational_state=df.at[i,'Conformational State'],\
+        spatial_y32=df.at[i,'Spatial Y32'],\
+        spatial_y71=df.at[i,'Spatial Y71'],\
+        dihedral_switch1=df.at[i,'Dihedral Switch 1'],\
+        dihedral_switch2=df.at[i,'Dihedral Switch 2'],\
         residue_range=df.at[i,'Residue Range'],\
         nucleotide=df.at[i,'Nucleotide'],\
         drug=df.at[i,'Drug'],\
@@ -47,26 +48,26 @@ def update_database(df):
 # def create_search_dict(Clusters):
 #     pdb_set=set();conformation_set=set();bound_protein_set=set();bound_protein_class_set=set();nucleotide_class_set=set();drug_class_set=set()
 #     mutation_set=set()
-            
+
 #     for items in Clusters.query.all():
 #         pdb_set.add(items.pdb[:4])
 #         conformation_set.add(items.conformational_state.strip())
 #         nucleotide_class_set.add(items.nucleotide_class.strip())
 #         drug_class_set.add(items.drug_class.strip())
 #         bound_protein_class_set.add(items.bound_protein_class.strip())   #Check if these variables can also have ',' in them
-        
+
 #         if ',' in items.bound_protein:
 #             for protein in items.bound_protein.split(','):
 #                 bound_protein_set.add(protein.strip())
 #         else:
 #             bound_protein_set.add(items.bound_protein.strip())
-        
+
 #         if ',' in items.mutation_status:
 #             for mutation in items.mutation_status.split(','):
 #                 mutation_set.add(mutation.strip())
 #         else:
 #             mutation_set.add(items.mutation_status.strip())
-           
+
 #     count_entire_set=dict()
 #     for conf in conformation_set:
 #         for mut in mutation_set:
@@ -76,13 +77,12 @@ def update_database(df):
 #                         for drug in drug_class_set:
 #                            if Clusters.query.filter(Clusters.conformational_state.contains(conf),Clusters.mutation_status.contains(mut),Clusters.bound_protein.contains(bp),Clusters.bound_protein_class.contains(bpc),Clusters.nucleotide_class.contains(nucl),Clusters.drug_class.contains(drug)).count()>0:
 #                                count_entire_set[conf,mut,bp,bpc,nucl,drug]=Clusters.query.filter(Clusters.conformational_state.contains(conf),Clusters.mutation_status.contains(mut),Clusters.bound_protein.contains(bp),Clusters.bound_protein_class.contains(bpc),Clusters.nucleotide_class.contains(nucl),Clusters.drug_class.contains(drug)).count()
-   
+
 #     fhandle_pickle=open('search_dict.pkl','w')
 #     pickle.dump(count_entire_set,fhandle_pickle)
 #     fhandle_pickle.close()
-    
+
 if __name__ == '__main__':
     filename=sys.argv[1]
     df=pd.read_csv(filename,sep='\t',header='infer')
     update_database(df)
-    
